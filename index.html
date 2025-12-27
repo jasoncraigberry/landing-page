@@ -15,7 +15,7 @@ a.btn:hover { background: #0056b3; transform: scale(1.05); }
 #progress-bar { height: 100%; width: 0%; background: #007bff; border-radius: 12px; transition: width 0.1s linear; }
 </style>
 <script>
-// Countdown for Telegram WebView
+// Countdown timer
 let countdown = 5;
 
 // Detect Telegram WebView
@@ -23,16 +23,15 @@ function isTelegram() {
   return /Telegram/i.test(navigator.userAgent);
 }
 
-// SmartLink pools for Telegram WebView only
-const telegramLinks = [
+// Weighted SmartLink rotation
+const links = [
   { url: "https://lakns.com/link?z=10382058&var={SOURCE_ID}&ymid={CLICK_ID}", weight: 3 },
   { url: "https://lakns.com/link?z=10382035&var={SOURCE_ID}&ymid={CLICK_ID}", weight: 1 },
   { url: "https://lakns.com/link?z=10382060&var={SOURCE_ID}&ymid={CLICK_ID}", weight: 2 }
 ];
 
-// Weighted random picker
 function pickLink(links) {
-  const totalWeight = links.reduce((sum, l) => sum + l.weight, 0);
+  const totalWeight = links.reduce((sum,l) => sum + l.weight, 0);
   let rand = Math.random() * totalWeight;
   for (let l of links) {
     if (rand < l.weight) return l.url;
@@ -41,14 +40,13 @@ function pickLink(links) {
   return links[0].url;
 }
 
-const selectedLink = pickLink(telegramLinks);
+const selectedLink = pickLink(links);
 
-// Countdown + progress
+// Countdown + progress bar
 function updateCountdown() {
   if (countdown > 0) {
     document.getElementById("countdown").innerText = countdown;
-    let progressPercent = ((5 - countdown) / 5) * 100;
-    document.getElementById("progress-bar").style.width = progressPercent + "%";
+    document.getElementById("progress-bar").style.width = ((5 - countdown) / 5 * 100) + "%";
     countdown--;
     setTimeout(updateCountdown, 1000);
   } else {
@@ -56,14 +54,16 @@ function updateCountdown() {
   }
 }
 
-// Redirect to selected link
+// Redirect logic
 function redirect() {
   if (isTelegram()) {
-    window.location.href = selectedLink;
-  } else {
-    // If opened outside Telegram, show instructions
+    // Show instructions for opening in browser
     document.getElementById("redirect-msg").style.display = "block";
     document.getElementById("backup-btn").style.display = "inline-block";
+    document.getElementById("progress-bar").style.width = "100%";
+  } else {
+    // Non-Telegram browser
+    window.location.href = selectedLink;
   }
 }
 
@@ -81,14 +81,13 @@ window.onload = () => {
   <div id="progress-bar"></div>
 </div>
 
-<!-- Backup button (hidden initially, shown only if not Telegram) -->
+<!-- Backup button for Telegram users -->
 <a id="backup-btn" class="btn" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">
-Click Here if Not Redirected
+Open in Browser
 </a>
 
-<!-- Fallback instructions -->
 <p class="tip" id="redirect-msg" style="display:none;">
-⚠️ This page works best in Telegram. Please open it in the Telegram app to continue.
+⚠️ To continue, please open this link in your browser outside of Telegram.
 </p>
 </body>
 </html>
