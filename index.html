@@ -33,7 +33,7 @@ function isMobile() {
   return /Mobi|Android/i.test(navigator.userAgent);
 }
 
-// Country-specific and device-specific SmartLink pools
+// Country-specific and device-specific HTTPS SmartLink pools
 const countryLinks = {
   "US": {
     "mobile": [
@@ -57,7 +57,7 @@ const countryLinks = {
   }
 };
 
-// Placeholder for user country; replace with real geo detection if needed
+// Placeholder for user country; replace with real geo detection if available
 let userCountry = "default";
 
 // Pick weighted random link
