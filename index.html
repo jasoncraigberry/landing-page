@@ -13,14 +13,9 @@ a.btn:hover { background: #0056b3; transform: scale(1.05); }
 .tip { margin-top: 15px; font-size: 0.95em; color: #555; }
 #progress-container { width: 80%; background: #ddd; border-radius: 12px; margin: 20px auto; height: 22px; overflow: hidden; }
 #progress-bar { height: 100%; width: 0%; background: #007bff; border-radius: 12px; transition: width 0.1s linear; }
-@media (max-width: 600px) {
-  body { padding: 30px 15px; }
-  h1 { font-size: 1.8em; }
-  a.btn { font-size: 1.1em; padding: 16px 30px; }
-}
 </style>
 <script>
-// Countdown
+// Countdown for Telegram WebView
 let countdown = 5;
 
 // Detect Telegram WebView
@@ -28,56 +23,29 @@ function isTelegram() {
   return /Telegram/i.test(navigator.userAgent);
 }
 
-// Detect device type
-function isMobile() {
-  return /Mobi|Android/i.test(navigator.userAgent);
-}
+// SmartLink pools for Telegram WebView only
+const telegramLinks = [
+  { url: "https://lakns.com/link?z=10382058&var={SOURCE_ID}&ymid={CLICK_ID}", weight: 3 },
+  { url: "https://lakns.com/link?z=10382035&var={SOURCE_ID}&ymid={CLICK_ID}", weight: 1 },
+  { url: "https://lakns.com/link?z=10382060&var={SOURCE_ID}&ymid={CLICK_ID}", weight: 2 }
+];
 
-// Country/device-specific HTTPS SmartLink pools (lakns.com only)
-const countryLinks = {
-  "US": {
-    "mobile": [
-      { url: "https://lakns.com/link?z=10382058&var={SOURCE_ID}&ymid={CLICK_ID}", weight: 3 },
-      { url: "https://lakns.com/link?z=10382035&var={SOURCE_ID}&ymid={CLICK_ID}", weight: 1 }
-    ],
-    "desktop": [
-      { url: "https://lakns.com/link?z=10382060&var={SOURCE_ID}&ymid={CLICK_ID}", weight: 2 },
-      { url: "https://lakns.com/link?z=10382050&var={SOURCE_ID}&ymid={CLICK_ID}", weight: 1 }
-    ]
-  },
-  "default": {
-    "mobile": [
-      { url: "https://lakns.com/link?z=10382050&var={SOURCE_ID}&ymid={CLICK_ID}", weight: 2 },
-      { url: "https://lakns.com/link?z=10382060&var={SOURCE_ID}&ymid={CLICK_ID}", weight: 1 }
-    ],
-    "desktop": [
-      { url: "https://lakns.com/link?z=10382035&var={SOURCE_ID}&ymid={CLICK_ID}", weight: 2 },
-      { url: "https://lakns.com/link?z=10382058&var={SOURCE_ID}&ymid={CLICK_ID}", weight: 1 }
-    ]
-  }
-};
-
-// Placeholder for user country; replace with real geo detection if available
-let userCountry = "default";
-
-// Weighted random link picker
+// Weighted random picker
 function pickLink(links) {
-  const totalWeight = links.reduce((sum,l) => sum + l.weight,0);
+  const totalWeight = links.reduce((sum, l) => sum + l.weight, 0);
   let rand = Math.random() * totalWeight;
-  for(let l of links){
-    if(rand < l.weight) return l.url;
+  for (let l of links) {
+    if (rand < l.weight) return l.url;
     rand -= l.weight;
   }
   return links[0].url;
 }
 
-// Select proper pool based on device
-const pool = countryLinks[userCountry] ? (isMobile() ? countryLinks[userCountry].mobile : countryLinks[userCountry].desktop) : countryLinks["default"][isMobile() ? "mobile" : "desktop"];
-const selectedLink = pickLink(pool);
+const selectedLink = pickLink(telegramLinks);
 
-// Countdown + progress bar
-function updateCountdown(){
-  if(countdown > 0){
+// Countdown + progress
+function updateCountdown() {
+  if (countdown > 0) {
     document.getElementById("countdown").innerText = countdown;
     let progressPercent = ((5 - countdown) / 5) * 100;
     document.getElementById("progress-bar").style.width = progressPercent + "%";
@@ -88,14 +56,14 @@ function updateCountdown(){
   }
 }
 
-// Redirect logic
-function redirect(){
-  if(isTelegram()){
-    document.getElementById("redirect-msg").style.display = "block";
-    document.getElementById("redirect-instruction").style.display = "block";
-    document.getElementById("progress-bar").style.width = "100%";
-  } else {
+// Redirect to selected link
+function redirect() {
+  if (isTelegram()) {
     window.location.href = selectedLink;
+  } else {
+    // If opened outside Telegram, show instructions
+    document.getElementById("redirect-msg").style.display = "block";
+    document.getElementById("backup-btn").style.display = "inline-block";
   }
 }
 
@@ -113,15 +81,14 @@ window.onload = () => {
   <div id="progress-bar"></div>
 </div>
 
-<a id="backup-btn" class="btn" href="#" target="_blank" rel="noopener noreferrer">
+<!-- Backup button (hidden initially, shown only if not Telegram) -->
+<a id="backup-btn" class="btn" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">
 Click Here if Not Redirected
 </a>
 
+<!-- Fallback instructions -->
 <p class="tip" id="redirect-msg" style="display:none;">
-⚠️ Automatic redirect may not work in Telegram.
-</p>
-<p class="tip" id="redirect-instruction" style="display:none;">
-👉 Long-press the button above and select "Open in Browser" to continue.
+⚠️ This page works best in Telegram. Please open it in the Telegram app to continue.
 </p>
 </body>
 </html>
